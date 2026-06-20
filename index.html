@@ -2,12 +2,12 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Retro Pop Art Handler Tetris</title>
     <!-- Import font retro arcade dari Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Desain latar belakang Retro Pop (Pattern polkadot terang dengan warna neon) */
+        /* Desain latar belakang Retro Pop */
         body {
             background-color: #2b00ff;
             background-image: radial-gradient(#ff00ea 3px, transparent 3px);
@@ -22,6 +22,7 @@
             color: #fff;
             padding: 20px;
             box-sizing: border-box;
+            touch-action: none; /* Mencegah pull-to-refresh di mobile */
         }
 
         .header-container {
@@ -29,7 +30,6 @@
             margin-bottom: 20px;
         }
 
-        /* Trik CSS untuk menghapus background putih pada gambar logo agar menjadi transparan & menyala putih */
         .brand-logo {
             width: 180px;
             filter: grayscale(1) invert(1) brightness(2);
@@ -46,7 +46,6 @@
             line-height: 1.5;
         }
 
-        /* Container utama dengan gaya blocky solid shadow ala 90s UI */
         .game-container {
             display: flex;
             gap: 20px;
@@ -54,22 +53,31 @@
             padding: 20px;
             border: 4px solid #00ffff;
             box-shadow: 12px 12px 0px #ff00ea;
+            max-width: 100%;
         }
 
-        /* Wrapper canvas dan overlay */
+        .game-main {
+            display: flex;
+            flex-direction: column;
+            width: 300px;
+            max-width: 100%;
+        }
+
         .canvas-wrapper {
             position: relative;
             background-color: #000;
             border: 4px solid #ff00ea;
             box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.2);
+            width: 100%;
         }
 
         canvas {
-            display: block; /* Menghapus celah margin bawah */
-            image-rendering: pixelated; /* Mempertahankan gaya retro */
+            display: block; 
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated; 
         }
 
-        /* Layar Overlay untuk Game Over dan Tamat */
         .overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -109,6 +117,37 @@
             mix-blend-mode: screen;
         }
 
+        /* --- STYLING KONTROL MOBILE --- */
+        .mobile-controls {
+            display: none; /* Disembunyikan di Desktop */
+            width: 100%;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .mobile-controls button {
+            flex: 1;
+            padding: 15px 0;
+            font-size: 1.5rem;
+            background-color: #aa00ff;
+            color: #fff;
+            border: 3px solid #fff;
+            box-shadow: 4px 4px 0px #00ffff;
+            border-radius: 4px;
+            margin-bottom: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation; /* Cegah zoom saat tap ganda */
+        }
+
+        .mobile-controls button:active {
+            box-shadow: 0px 0px 0px #00ffff;
+            transform: translate(4px, 4px);
+            background-color: #ff00ea;
+        }
+        /* ----------------------------- */
+
         .sidebar {
             display: flex;
             flex-direction: column;
@@ -137,7 +176,7 @@
             color: #fff;
         }
 
-        button {
+        button#startBtn {
             background-color: #ff00ea;
             color: #fff;
             border: 4px solid #fff;
@@ -152,15 +191,7 @@
             margin-bottom: 20px;
         }
 
-        button:hover {
-            background-color: #00ffff;
-            color: #000;
-            border-color: #ff00ea;
-            box-shadow: 6px 6px 0px #ffff00;
-            transform: translate(-2px, -2px);
-        }
-
-        button:active {
+        button#startBtn:active {
             box-shadow: 0px 0px 0px #ffff00;
             transform: translate(4px, 4px);
         }
@@ -179,19 +210,55 @@
             margin: 5px 0;
         }
 
-        @media (max-width: 650px) {
+        /* --- PENGATURAN RESPONSIVE UNTUK SMARTPHONE --- */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header-container { margin-bottom: 10px; }
+            h1 { font-size: 1.1rem; }
+            .brand-logo { width: 130px; margin-bottom: 5px; }
+            
             .game-container {
                 flex-direction: column;
                 align-items: center;
                 width: 100%;
-                max-width: 350px;
+                max-width: 400px;
+                padding: 15px;
+                box-sizing: border-box;
+                gap: 15px;
             }
+
+            .game-main {
+                width: 100%;
+            }
+
+            canvas {
+                max-height: 50vh; /* Memastikan kanvas tidak terlalu tinggi di HP */
+                object-fit: contain;
+            }
+
             .sidebar {
                 width: 100%;
                 flex-direction: column;
             }
-            h1 { font-size: 1.2rem; }
-            .brand-logo { width: 140px; }
+
+            .score-board {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .score-board .info-box {
+                flex: 1;
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            .score-board .info-box h2 { font-size: 0.8rem; }
+            .score-board .info-box p { font-size: 1.2rem; }
+
+            .controls-help { display: none; } /* Sembunyikan panduan keyboard */
+            .mobile-controls { display: flex; } /* Tampilkan kontrol on-screen */
+            
+            button#startBtn { margin-bottom: 0; padding: 12px; }
         }
     </style>
 </head>
@@ -200,20 +267,31 @@
     <div class="header-container">
         <!-- Logo Serrum -->
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s" alt="Serrum Logo" class="brand-logo">
-        <h1>SELAMAT BERMAIN</h1>
+        <h1>KALO JAGO TAMATINLAHh...</h1>
     </div>
 
     <div class="game-container">
-        <!-- Area bermain dengan Overlay -->
-        <div class="canvas-wrapper">
-            <canvas id="tetrisCanvas" width="300" height="600"></canvas>
-            <div id="overlay" class="overlay hidden">
-                <!-- Konten dinamis untuk Game Over / Menang -->
+        
+        <div class="game-main">
+            <!-- Area bermain dengan Overlay -->
+            <div class="canvas-wrapper">
+                <canvas id="tetrisCanvas" width="300" height="600"></canvas>
+                <div id="overlay" class="overlay hidden">
+                    <!-- Konten dinamis untuk Game Over / Menang -->
+                </div>
+            </div>
+
+            <!-- Tombol Kontrol Mobile (Hanya muncul di Layar Kecil) -->
+            <div class="mobile-controls">
+                <button id="btnLeft">⬅️</button>
+                <button id="btnDrop">⬇️</button>
+                <button id="btnRotate">🔃</button>
+                <button id="btnRight">➡️</button>
             </div>
         </div>
 
         <div class="sidebar">
-            <div>
+            <div class="score-board">
                 <div class="info-box">
                     <h2>LEVEL</h2>
                     <p id="level">1</p>
@@ -222,9 +300,9 @@
                     <h2>SKOR</h2>
                     <p id="score">0</p>
                 </div>
-                
-                <button id="startBtn">START</button>
             </div>
+            
+            <button id="startBtn">START</button>
 
             <div class="controls-help">
                 <p><strong>KONTROL:</strong></p>
@@ -357,12 +435,12 @@
                     level = newLevel;
                     levelElement.innerText = level;
                     
-                    // Cek jika tamat (Melewati Level 10 / Menghancurkan 100 Baris)
+                    // Cek jika tamat (Melewati Level 10)
                     if (level > 10) {
                         isGameWon = true;
                         levelElement.innerText = "MAX";
                         showWinScreen();
-                        return; // Stop update logic
+                        return;
                     } else {
                         // Jika belum tamat, kecepatan semakin meningkat
                         dropInterval = Math.max(100, 1000 - (level - 1) * 85);
@@ -440,21 +518,20 @@
                         ctx.strokeStyle = '#8B5A2B';
                         ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
                         
-                        // 3. Lakban Segel (Warna neon sesuai tipe blok untuk memudahkan pemain)
+                        // 3. Lakban Segel (Warna neon)
                         ctx.fillStyle = pieceData.color;
                         ctx.globalAlpha = 0.6;
-                        // Menggambar lakban di tengah-tengah kardus
                         ctx.fillRect(px, py + 10, BLOCK_SIZE, 10);
                         ctx.globalAlpha = 1.0;
 
-                        // 4. Stempel Teks "SERRUM" (Di Atas Lakban)
-                        ctx.fillStyle = '#3a2411'; // Warna tinta hitam/cokelat sangat tua
+                        // 4. Stempel Teks "SERRUM" 
+                        ctx.fillStyle = '#3a2411';
                         ctx.font = 'bold 6px Arial, sans-serif'; 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText('SERRUM', px + BLOCK_SIZE / 2, py + 6, BLOCK_SIZE - 4);
 
-                        // 5. Stempel Teks "ARTHANDLING" (Di Bawah Lakban)
+                        // 5. Stempel Teks "ARTHANDLING" 
                         ctx.font = 'bold 4.5px Arial, sans-serif'; 
                         ctx.fillText('ARTHANDLING', px + BLOCK_SIZE / 2, py + 24, BLOCK_SIZE - 4);
                     }
@@ -518,6 +595,7 @@
             animationId = requestAnimationFrame(update);
         }
 
+        // --- KONTROL KEYBOARD (DESKTOP) ---
         document.addEventListener('keydown', event => {
             if (isGameOver || isGameWon) return;
 
@@ -535,6 +613,26 @@
                 event.preventDefault();
             }
         });
+
+        // --- KONTROL VIRTUAL (MOBILE SMARTPHONE) ---
+        // Menggunakan touchstart / mousedown untuk menghilangkan delay sentuhan (300ms delay)
+        const setupMobileControl = (buttonId, action) => {
+            const btn = document.getElementById(buttonId);
+            const handler = (e) => {
+                e.preventDefault(); // Mencegah double tap zoom dan event turunan default
+                if (isGameOver || isGameWon) return;
+                action();
+                draw(); // Paksa render agar visual segera merespon sentuhan
+            };
+            btn.addEventListener('touchstart', handler, { passive: false });
+            btn.addEventListener('mousedown', handler, { passive: false });
+        };
+
+        setupMobileControl('btnLeft', () => playerMove(-1));
+        setupMobileControl('btnRight', () => playerMove(1));
+        setupMobileControl('btnDrop', playerDrop);
+        setupMobileControl('btnRotate', playerRotate);
+        // ------------------------------------------
 
         startBtn.addEventListener('click', () => {
             board = createMatrix(COLS, ROWS);
