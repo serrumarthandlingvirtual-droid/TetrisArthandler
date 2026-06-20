@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Pop Art Handler Tetris</title>
+    <!-- Import font retro arcade dari Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Desain latar belakang Retro Pop (Pattern polkadot terang dengan warna neon) */
+        body {
+            background-color: #2b00ff;
+            background-image: radial-gradient(#ff00ea 3px, transparent 3px);
+            background-size: 30px 30px;
+            font-family: 'Press Start 2P', cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #fff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Trik CSS untuk menghapus background putih pada gambar logo agar menjadi transparan & menyala putih */
+        .brand-logo {
+            width: 180px;
+            filter: grayscale(1) invert(1) brightness(2);
+            mix-blend-mode: screen;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            color: #ffff00;
+            text-shadow: 4px 4px 0px #ff00ea, -2px -2px 0px #00ffff;
+            line-height: 1.5;
+        }
+
+        /* Container utama dengan gaya blocky solid shadow ala 90s UI */
+        .game-container {
+            display: flex;
+            gap: 20px;
+            background: #111;
+            padding: 20px;
+            border: 4px solid #00ffff;
+            box-shadow: 12px 12px 0px #ff00ea;
+        }
+
+        /* Wrapper canvas dan overlay */
+        .canvas-wrapper {
+            position: relative;
+            background-color: #000;
+            border: 4px solid #ff00ea;
+            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        canvas {
+            display: block; /* Menghapus celah margin bawah */
+            image-rendering: pixelated; /* Mempertahankan gaya retro */
+        }
+
+        /* Layar Overlay untuk Game Over dan Tamat */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .overlay.hidden {
+            display: none !important;
+        }
+
+        .overlay h2 {
+            color: #ff00ea;
+            text-shadow: 2px 2px #00ffff;
+            font-size: 1.2rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            color: #fff;
+            font-size: 0.75rem;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+
+        .overlay-icon {
+            width: 100px;
+            margin-bottom: 15px;
+            filter: grayscale(1) invert(1);
+            mix-blend-mode: screen;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 220px;
+        }
+
+        .info-box {
+            background: #222;
+            border: 4px solid #ffff00;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 6px 6px 0px #00ffff;
+        }
+
+        .info-box h2 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #ff00ea;
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        button {
+            background-color: #ff00ea;
+            color: #fff;
+            border: 4px solid #fff;
+            padding: 15px 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 6px 6px 0px #00ffff;
+            transition: all 0.1s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #00ffff;
+            color: #000;
+            border-color: #ff00ea;
+            box-shadow: 6px 6px 0px #ffff00;
+            transform: translate(-2px, -2px);
+        }
+
+        button:active {
+            box-shadow: 0px 0px 0px #ffff00;
+            transform: translate(4px, 4px);
+        }
+
+        .controls-help {
+            font-size: 0.65rem;
+            color: #00ffff;
+            background: #222;
+            padding: 15px;
+            border: 4px solid #ff00ea;
+            box-shadow: 6px 6px 0px #ffff00;
+            line-height: 2;
+        }
+
+        .controls-help p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 650px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                max-width: 350px;
+            }
+            .sidebar {
+                width: 100%;
+                flex-direction: column;
+            }
+            h1 { font-size: 1.2rem; }
+            .brand-logo { width: 140px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <!-- Logo Serrum -->
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s" alt="Serrum Logo" class="brand-logo">
+        <h1>Retro Art Handler</h1>
+    </div>
+
+    <div class="game-container">
+        <!-- Area bermain dengan Overlay -->
+        <div class="canvas-wrapper">
+            <canvas id="tetrisCanvas" width="300" height="600"></canvas>
+            <div id="overlay" class="overlay hidden">
+                <!-- Konten dinamis untuk Game Over / Menang -->
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div>
+                <div class="info-box">
+                    <h2>LEVEL</h2>
+                    <p id="level">1</p>
+                </div>
+                <div class="info-box">
+                    <h2>SKOR</h2>
+                    <p id="score">0</p>
+                </div>
+                
+                <button id="startBtn">START</button>
+            </div>
+
+            <div class="controls-help">
+                <p><strong>KONTROL:</strong></p>
+                <p>⬅️ ➡️ : Geser</p>
+                <p>⬇️ : Turun Cepat</p>
+                <p>⬆️ : Putar</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tetrisCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const startBtn = document.getElementById('startBtn');
+        const overlay = document.getElementById('overlay');
+
+        // Konstanta ukuran grid
+        const ROWS = 20;
+        const COLS = 10;
+        const BLOCK_SIZE = 30;
+
+        // Pemetaan Tetromino: ID, Warna Lakban, dan Matriks
+        const PIECES = [
+            null, 
+            { id: 1, color: '#00ffff', matrix: [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]] }, // I - Lakban Cyan
+            { id: 2, color: '#ffff00', matrix: [[2,2], [2,2]] },                               // O - Lakban Kuning
+            { id: 3, color: '#aa00ff', matrix: [[0,3,0], [3,3,3], [0,0,0]] },                  // T - Lakban Ungu
+            { id: 4, color: '#ff8800', matrix: [[0,0,4], [4,4,4], [0,0,0]] },                  // L - Lakban Oranye
+            { id: 5, color: '#ff00ea', matrix: [[5,0,0], [5,5,5], [0,0,0]] },                  // J - Lakban Pink
+            { id: 6, color: '#00ff00', matrix: [[0,6,6], [6,6,0], [0,0,0]] },                  // S - Lakban Hijau
+            { id: 7, color: '#ff0055', matrix: [[7,7,0], [0,7,7], [0,0,0]] }                   // Z - Lakban Merah
+        ];
+
+        let board = [];
+        let score = 0;
+        let level = 1;
+        let linesCleared = 0;
+        let animationId;
+        
+        let isGameOver = true;
+        let isGameWon = false;
+        
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+
+        let player = {
+            pos: {x: 0, y: 0},
+            matrix: null,
+            id: 0
+        };
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) {
+                matrix.push(new Array(w).fill(0));
+            }
+            return matrix;
+        }
+
+        function playerReset() {
+            const piecesStr = "1234567";
+            const randomType = piecesStr[Math.floor(Math.random() * piecesStr.length)];
+            const pieceData = PIECES[parseInt(randomType)];
+            
+            player.matrix = pieceData.matrix;
+            player.id = pieceData.id;
+            player.pos.y = 0;
+            player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
+
+            if (collide(board, player)) {
+                isGameOver = true;
+                showGameOverScreen();
+            }
+        }
+
+        function collide(board, player) {
+            const m = player.matrix;
+            const o = player.pos;
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 &&
+                        (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function merge(board, player) {
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        board[y + player.pos.y][x + player.pos.x] = value;
+                    }
+                });
+            });
+        }
+
+        function arenaSweep() {
+            let rowCount = 1;
+            let linesInThisSweep = 0;
+
+            outer: for (let y = board.length - 1; y >= 0; --y) {
+                for (let x = 0; x < board[y].length; ++x) {
+                    if (board[y][x] === 0) {
+                        continue outer;
+                    }
+                }
+                const row = board.splice(y, 1)[0].fill(0);
+                board.unshift(row);
+                ++y;
+
+                linesInThisSweep++;
+                linesCleared++;
+                score += rowCount * 100 * level; 
+                rowCount *= 2;
+            }
+
+            if (linesInThisSweep > 0) {
+                scoreElement.innerText = score;
+                
+                // Kalkulasi level (Setiap 10 baris hancur = Naik 1 Level)
+                let newLevel = Math.floor(linesCleared / 10) + 1;
+                
+                if (newLevel > level) {
+                    level = newLevel;
+                    levelElement.innerText = level;
+                    
+                    // Cek jika tamat (Melewati Level 10 / Menghancurkan 100 Baris)
+                    if (level > 10) {
+                        isGameWon = true;
+                        levelElement.innerText = "MAX";
+                        showWinScreen();
+                        return; // Stop update logic
+                    } else {
+                        // Jika belum tamat, kecepatan semakin meningkat
+                        dropInterval = Math.max(100, 1000 - (level - 1) * 85);
+                    }
+                }
+            }
+        }
+
+        function playerDrop() {
+            if(isGameOver || isGameWon) return;
+            
+            player.pos.y++;
+            if (collide(board, player)) {
+                player.pos.y--;
+                merge(board, player);
+                playerReset();
+                if(!isGameOver) arenaSweep();
+            }
+            dropCounter = 0;
+        }
+
+        function playerMove(offset) {
+            player.pos.x += offset;
+            if (collide(board, player)) {
+                player.pos.x -= offset;
+            }
+        }
+
+        function playerRotate() {
+            const pos = player.pos.x;
+            let offset = 1;
+            rotate(player.matrix);
+            
+            while (collide(board, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotate(player.matrix, -1);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        function rotate(matrix, dir = 1) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) {
+                matrix.forEach(row => row.reverse());
+            } else {
+                matrix.reverse();
+            }
+        }
+
+        // FUNGSI MENGGAMBAR BOX KARDUS 'SERRUM ARTHANDLING'
+        function drawMatrix(matrix, offset, isPlayer = false) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    const blockId = isPlayer ? (value !== 0 ? player.id : 0) : value;
+                    
+                    if (blockId !== 0) {
+                        const px = (x + offset.x) * BLOCK_SIZE;
+                        const py = (y + offset.y) * BLOCK_SIZE;
+                        const pieceData = PIECES[blockId];
+
+                        // 1. Warna Dasar Kardus (Cokelat)
+                        ctx.fillStyle = '#C19A6B';
+                        ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+                        
+                        // 2. Border Pinggiran Kardus (Cokelat Tua)
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#8B5A2B';
+                        ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+                        
+                        // 3. Lakban Segel (Warna neon sesuai tipe blok untuk memudahkan pemain)
+                        ctx.fillStyle = pieceData.color;
+                        ctx.globalAlpha = 0.6;
+                        // Menggambar lakban di tengah-tengah kardus
+                        ctx.fillRect(px, py + 10, BLOCK_SIZE, 10);
+                        ctx.globalAlpha = 1.0;
+
+                        // 4. Stempel Teks "SERRUM" (Di Atas Lakban)
+                        ctx.fillStyle = '#3a2411'; // Warna tinta hitam/cokelat sangat tua
+                        ctx.font = 'bold 6px Arial, sans-serif'; 
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('SERRUM', px + BLOCK_SIZE / 2, py + 6, BLOCK_SIZE - 4);
+
+                        // 5. Stempel Teks "ARTHANDLING" (Di Bawah Lakban)
+                        ctx.font = 'bold 4.5px Arial, sans-serif'; 
+                        ctx.fillText('ARTHANDLING', px + BLOCK_SIZE / 2, py + 24, BLOCK_SIZE - 4);
+                    }
+                });
+            });
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#222'; 
+            ctx.lineWidth = 1;
+            for(let i=0; i<COLS; i++) {
+                for(let j=0; j<ROWS; j++) {
+                    ctx.strokeRect(i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+            drawMatrix(board, {x: 0, y: 0});
+            
+            if(!isGameOver && !isGameWon) {
+                drawMatrix(player.matrix, player.pos, true);
+            }
+        }
+
+        function showGameOverScreen() {
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <h2>GAME OVER</h2>
+                <p>KLIK RESTART UNTUK<br>MENCOBA LAGI</p>
+            `;
+            startBtn.innerText = "RESTART";
+        }
+
+        function showWinScreen() {
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s" alt="Icon Tamat" class="overlay-icon">
+                <h2>SELAMAT!</h2>
+                <p>KAMU ADALAH<br><strong>ARTHANDLER SEJATI</strong></p>
+            `;
+            startBtn.innerText = "MAIN LAGI";
+        }
+
+        function update(time = 0) {
+            if (isGameOver || isGameWon) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                playerDrop();
+            }
+
+            draw();
+            animationId = requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (isGameOver || isGameWon) return;
+
+            if (event.keyCode === 37) {
+                playerMove(-1);
+            } else if (event.keyCode === 39) {
+                playerMove(1);
+            } else if (event.keyCode === 40) {
+                playerDrop();
+            } else if (event.keyCode === 38) {
+                playerRotate();
+            }
+            
+            if([37, 38, 39, 40].includes(event.keyCode)){
+                event.preventDefault();
+            }
+        });
+
+        startBtn.addEventListener('click', () => {
+            board = createMatrix(COLS, ROWS);
+            score = 0;
+            level = 1;
+            linesCleared = 0;
+            isGameOver = false;
+            isGameWon = false;
+            dropInterval = 1000;
+            
+            scoreElement.innerText = score;
+            levelElement.innerText = level;
+            startBtn.innerText = "RESTART";
+            overlay.classList.add('hidden');
+            
+            playerReset();
+            lastTime = performance.now();
+            cancelAnimationFrame(animationId);
+            update();
+        });
+
+        // Gambar grid kosong pertama kali
+        draw();
+        
+    </script>
+</body>
+</html>
