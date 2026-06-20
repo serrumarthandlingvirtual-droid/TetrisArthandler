@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Retro Pop Art Handler Tetris</title>
-    <!-- Import font retro arcade dari Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* Desain latar belakang Retro Pop */
         body {
             background-color: #2b00ff;
             background-image: radial-gradient(#ff00ea 3px, transparent 3px);
@@ -16,299 +14,103 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             min-height: 100vh;
             margin: 0;
             color: #fff;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
-            touch-action: none; /* Mencegah pull-to-refresh di mobile */
+            overscroll-behavior: none;
         }
 
-        .header-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .brand-logo {
-            width: 180px;
-            filter: grayscale(1) invert(1) brightness(2);
-            mix-blend-mode: screen;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            margin: 0;
-            text-transform: uppercase;
-            font-size: 1.5rem;
-            color: #ffff00;
-            text-shadow: 4px 4px 0px #ff00ea, -2px -2px 0px #00ffff;
-            line-height: 1.5;
-        }
+        .header-container { text-align: center; margin-bottom: 10px; }
+        .brand-logo { width: 150px; filter: grayscale(1) invert(1) brightness(2); mix-blend-mode: screen; }
+        h1 { margin: 5px 0; font-size: 1.2rem; color: #ffff00; text-shadow: 2px 2px 0px #ff00ea; }
 
         .game-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             background: #111;
-            padding: 20px;
+            padding: 15px;
             border: 4px solid #00ffff;
-            box-shadow: 12px 12px 0px #ff00ea;
-            max-width: 100%;
-        }
-
-        .game-main {
-            display: flex;
+            box-shadow: 8px 8px 0px #ff00ea;
+            max-width: 400px;
+            width: 100%;
             flex-direction: column;
-            width: 300px;
-            max-width: 100%;
         }
 
         .canvas-wrapper {
             position: relative;
             background-color: #000;
             border: 4px solid #ff00ea;
-            box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.2);
             width: 100%;
         }
 
-        canvas {
-            display: block; 
-            width: 100%;
-            height: auto;
-            image-rendering: pixelated; 
-        }
+        canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
 
         .overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            text-align: center;
-            padding: 20px;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 20; text-align: center; padding: 10px;
         }
+        .overlay.hidden { display: none !important; }
+        .overlay h2 { color: #ff00ea; font-size: 1rem; margin-bottom: 10px; }
+        .overlay-icon { width: 60px; margin-bottom: 10px; filter: grayscale(1) invert(1); mix-blend-mode: screen; }
 
-        .overlay.hidden {
-            display: none !important;
-        }
-
-        .overlay h2 {
-            color: #ff00ea;
-            text-shadow: 2px 2px #00ffff;
-            font-size: 1.2rem;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-
-        .overlay p {
-            color: #fff;
-            font-size: 0.75rem;
-            line-height: 1.8;
-            margin-top: 10px;
-        }
-
-        .overlay-icon {
-            width: 100px;
-            margin-bottom: 15px;
-            filter: grayscale(1) invert(1);
-            mix-blend-mode: screen;
-        }
-
-        /* --- STYLING KONTROL MOBILE --- */
-        .mobile-controls {
-            display: none; /* Disembunyikan di Desktop */
-            width: 100%;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 15px;
-        }
-
-        .mobile-controls button {
-            flex: 1;
-            padding: 15px 0;
-            font-size: 1.5rem;
-            background-color: #aa00ff;
-            color: #fff;
-            border: 3px solid #fff;
-            box-shadow: 4px 4px 0px #00ffff;
-            border-radius: 4px;
-            margin-bottom: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation; /* Cegah zoom saat tap ganda */
-        }
-
-        .mobile-controls button:active {
-            box-shadow: 0px 0px 0px #00ffff;
-            transform: translate(4px, 4px);
-            background-color: #ff00ea;
-        }
-        /* ----------------------------- */
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 220px;
-        }
-
-        .info-box {
-            background: #222;
-            border: 4px solid #ffff00;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 15px;
-            box-shadow: 6px 6px 0px #00ffff;
-        }
-
-        .info-box h2 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            color: #ff00ea;
-        }
-
-        .info-box p {
-            margin: 0;
-            font-size: 1.5rem;
-            color: #fff;
-        }
+        .sidebar { display: flex; flex-direction: column; gap: 10px; }
+        .score-board { display: flex; gap: 10px; }
+        .info-box { flex: 1; background: #222; border: 3px solid #ffff00; padding: 10px; text-align: center; }
+        .info-box h2 { margin: 0; font-size: 0.7rem; color: #ff00ea; }
+        .info-box p { margin: 5px 0 0; font-size: 1rem; }
 
         button#startBtn {
-            background-color: #ff00ea;
-            color: #fff;
-            border: 4px solid #fff;
-            padding: 15px 10px;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 6px 6px 0px #00ffff;
-            transition: all 0.1s ease;
+            background-color: #ff00ea; color: #fff; border: 3px solid #fff;
+            padding: 10px; font-family: 'Press Start 2P', cursive; cursor: pointer;
+            width: 100%; box-shadow: 4px 4px 0px #00ffff;
+        }
+
+        /* Kontrol Mobile yang Diperbaiki */
+        .mobile-controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 15px;
             width: 100%;
-            margin-bottom: 20px;
         }
-
-        button#startBtn:active {
-            box-shadow: 0px 0px 0px #ffff00;
-            transform: translate(4px, 4px);
-        }
-
-        .controls-help {
-            font-size: 0.65rem;
-            color: #00ffff;
-            background: #222;
-            padding: 15px;
-            border: 4px solid #ff00ea;
-            box-shadow: 6px 6px 0px #ffff00;
-            line-height: 2;
-        }
-
-        .controls-help p {
-            margin: 5px 0;
-        }
-
-        /* --- PENGATURAN RESPONSIVE UNTUK SMARTPHONE --- */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header-container { margin-bottom: 10px; }
-            h1 { font-size: 1.1rem; }
-            .brand-logo { width: 130px; margin-bottom: 5px; }
-            
-            .game-container {
-                flex-direction: column;
-                align-items: center;
-                width: 100%;
-                max-width: 400px;
-                padding: 15px;
-                box-sizing: border-box;
-                gap: 15px;
-            }
-
-            .game-main {
-                width: 100%;
-            }
-
-            canvas {
-                max-height: 50vh; /* Memastikan kanvas tidak terlalu tinggi di HP */
-                object-fit: contain;
-            }
-
-            .sidebar {
-                width: 100%;
-                flex-direction: column;
-            }
-
-            .score-board {
-                display: flex;
-                gap: 10px;
-                width: 100%;
-            }
-
-            .score-board .info-box {
-                flex: 1;
-                padding: 10px;
-                margin-bottom: 15px;
-            }
-            .score-board .info-box h2 { font-size: 0.8rem; }
-            .score-board .info-box p { font-size: 1.2rem; }
-
-            .controls-help { display: none; } /* Sembunyikan panduan keyboard */
-            .mobile-controls { display: flex; } /* Tampilkan kontrol on-screen */
-            
-            button#startBtn { margin-bottom: 0; padding: 12px; }
+        .mobile-controls button {
+            padding: 20px 0;
+            background: #aa00ff;
+            color: #fff;
+            border: 2px solid #fff;
+            font-size: 1.2rem;
+            touch-action: manipulation;
         }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <!-- Logo Serrum -->
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s" alt="Serrum Logo" class="brand-logo">
-        <h1>KALO JAGO TAMATINLAHh...</h1>
+        <h1>TUNJUKAN KEHEBATANMU</h1>
     </div>
 
     <div class="game-container">
-        
-        <div class="game-main">
-            <!-- Area bermain dengan Overlay -->
-            <div class="canvas-wrapper">
-                <canvas id="tetrisCanvas" width="300" height="600"></canvas>
-                <div id="overlay" class="overlay hidden">
-                    <!-- Konten dinamis untuk Game Over / Menang -->
-                </div>
-            </div>
+        <div class="canvas-wrapper">
+            <canvas id="tetrisCanvas" width="300" height="600"></canvas>
+            <div id="overlay" class="overlay hidden"></div>
+        </div>
 
-            <!-- Tombol Kontrol Mobile (Hanya muncul di Layar Kecil) -->
+        <div class="sidebar">
+            <div class="score-board">
+                <div class="info-box"><h2>LEVEL</h2><p id="level">1</p></div>
+                <div class="info-box"><h2>SKOR</h2><p id="score">0</p></div>
+            </div>
+            <button id="startBtn">START</button>
             <div class="mobile-controls">
                 <button id="btnLeft">⬅️</button>
                 <button id="btnDrop">⬇️</button>
                 <button id="btnRotate">🔃</button>
                 <button id="btnRight">➡️</button>
-            </div>
-        </div>
-
-        <div class="sidebar">
-            <div class="score-board">
-                <div class="info-box">
-                    <h2>LEVEL</h2>
-                    <p id="level">1</p>
-                </div>
-                <div class="info-box">
-                    <h2>SKOR</h2>
-                    <p id="score">0</p>
-                </div>
-            </div>
-            
-            <button id="startBtn">START</button>
-
-            <div class="controls-help">
-                <p><strong>KONTROL:</strong></p>
-                <p>⬅️ ➡️ : Geser</p>
-                <p>⬇️ : Turun Cepat</p>
-                <p>⬆️ : Putar</p>
             </div>
         </div>
     </div>
@@ -321,342 +123,99 @@
         const startBtn = document.getElementById('startBtn');
         const overlay = document.getElementById('overlay');
 
-        // Konstanta ukuran grid
-        const ROWS = 20;
-        const COLS = 10;
-        const BLOCK_SIZE = 30;
-
-        // Pemetaan Tetromino: ID, Warna Lakban, dan Matriks
-        const PIECES = [
-            null, 
-            { id: 1, color: '#00ffff', matrix: [[0,0,0,0], [1,1,1,1], [0,0,0,0], [0,0,0,0]] }, // I - Lakban Cyan
-            { id: 2, color: '#ffff00', matrix: [[2,2], [2,2]] },                               // O - Lakban Kuning
-            { id: 3, color: '#aa00ff', matrix: [[0,3,0], [3,3,3], [0,0,0]] },                  // T - Lakban Ungu
-            { id: 4, color: '#ff8800', matrix: [[0,0,4], [4,4,4], [0,0,0]] },                  // L - Lakban Oranye
-            { id: 5, color: '#ff00ea', matrix: [[5,0,0], [5,5,5], [0,0,0]] },                  // J - Lakban Pink
-            { id: 6, color: '#00ff00', matrix: [[0,6,6], [6,6,0], [0,0,0]] },                  // S - Lakban Hijau
-            { id: 7, color: '#ff0055', matrix: [[7,7,0], [0,7,7], [0,0,0]] }                   // Z - Lakban Merah
+        const ROWS = 20; const COLS = 10; const BLOCK_SIZE = 30;
+        const PIECES = [null, 
+            {id: 1, color: '#00ffff', matrix: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]},
+            {id: 2, color: '#ffff00', matrix: [[2,2],[2,2]]},
+            {id: 3, color: '#aa00ff', matrix: [[0,3,0],[3,3,3],[0,0,0]]},
+            {id: 4, color: '#ff8800', matrix: [[0,0,4],[4,4,4],[0,0,0]]},
+            {id: 5, color: '#ff00ea', matrix: [[5,0,0],[5,5,5],[0,0,0]]},
+            {id: 6, color: '#00ff00', matrix: [[0,6,6],[6,6,0],[0,0,0]]},
+            {id: 7, color: '#ff0055', matrix: [[7,7,0],[0,7,7],[0,0,0]]}
         ];
 
-        let board = [];
-        let score = 0;
-        let level = 1;
-        let linesCleared = 0;
-        let animationId;
-        
-        let isGameOver = true;
-        let isGameWon = false;
-        
-        let dropCounter = 0;
-        let dropInterval = 1000;
-        let lastTime = 0;
+        let board = [], score = 0, level = 1, linesCleared = 0, isGameOver = true, isGameWon = false;
+        let dropInterval = 1000, lastTime = 0, player = {pos: {x: 0, y: 0}, matrix: null, id: 0};
 
-        let player = {
-            pos: {x: 0, y: 0},
-            matrix: null,
-            id: 0
-        };
-
-        function createMatrix(w, h) {
-            const matrix = [];
-            while (h--) {
-                matrix.push(new Array(w).fill(0));
-            }
-            return matrix;
-        }
+        function createMatrix(w, h) { return Array.from({length: h}, () => Array(w).fill(0)); }
 
         function playerReset() {
-            const piecesStr = "1234567";
-            const randomType = piecesStr[Math.floor(Math.random() * piecesStr.length)];
-            const pieceData = PIECES[parseInt(randomType)];
-            
-            player.matrix = pieceData.matrix;
-            player.id = pieceData.id;
-            player.pos.y = 0;
-            player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
-
-            if (collide(board, player)) {
-                isGameOver = true;
-                showGameOverScreen();
-            }
+            const piece = PIECES[Math.floor(Math.random() * 7) + 1];
+            player.matrix = piece.matrix; player.id = piece.id;
+            player.pos.y = 0; player.pos.x = Math.floor(COLS/2) - Math.floor(player.matrix[0].length/2);
+            if (collide(board, player)) { isGameOver = true; showGameOverScreen(); }
         }
 
         function collide(board, player) {
-            const m = player.matrix;
-            const o = player.pos;
-            for (let y = 0; y < m.length; ++y) {
-                for (let x = 0; x < m[y].length; ++x) {
-                    if (m[y][x] !== 0 &&
-                        (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
-                        return true;
-                    }
+            for (let y = 0; y < player.matrix.length; y++) {
+                for (let x = 0; x < player.matrix[y].length; x++) {
+                    if (player.matrix[y][x] !== 0 && (board[y + player.pos.y] && board[y + player.pos.y][x + player.pos.x]) !== 0) return true;
                 }
             }
             return false;
         }
 
         function merge(board, player) {
-            player.matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        board[y + player.pos.y][x + player.pos.x] = value;
-                    }
-                });
-            });
+            player.matrix.forEach((row, y) => row.forEach((val, x) => { if(val) board[y + player.pos.y][x + player.pos.x] = val; }));
         }
 
         function arenaSweep() {
-            let rowCount = 1;
-            let linesInThisSweep = 0;
-
-            outer: for (let y = board.length - 1; y >= 0; --y) {
-                for (let x = 0; x < board[y].length; ++x) {
-                    if (board[y][x] === 0) {
-                        continue outer;
-                    }
-                }
-                const row = board.splice(y, 1)[0].fill(0);
-                board.unshift(row);
-                ++y;
-
-                linesInThisSweep++;
-                linesCleared++;
-                score += rowCount * 100 * level; 
-                rowCount *= 2;
+            outer: for (let y = board.length - 1; y >= 0; y--) {
+                for (let x = 0; x < board[y].length; x++) if (board[y][x] === 0) continue outer;
+                board.splice(y, 1); board.unshift(Array(COLS).fill(0));
+                score += 100 * level; linesCleared++; y++;
             }
-
-            if (linesInThisSweep > 0) {
-                scoreElement.innerText = score;
-                
-                // Kalkulasi level (Setiap 10 baris hancur = Naik 1 Level)
-                let newLevel = Math.floor(linesCleared / 10) + 1;
-                
-                if (newLevel > level) {
-                    level = newLevel;
-                    levelElement.innerText = level;
-                    
-                    // Cek jika tamat (Melewati Level 10)
-                    if (level > 10) {
-                        isGameWon = true;
-                        levelElement.innerText = "MAX";
-                        showWinScreen();
-                        return;
-                    } else {
-                        // Jika belum tamat, kecepatan semakin meningkat
-                        dropInterval = Math.max(100, 1000 - (level - 1) * 85);
-                    }
-                }
+            scoreElement.innerText = score;
+            let newLevel = Math.floor(linesCleared / 10) + 1;
+            if (newLevel > level) {
+                level = newLevel; levelElement.innerText = level;
+                if (level > 10) { isGameWon = true; showWinScreen(); }
+                else dropInterval = Math.max(100, 1000 - (level - 1) * 85);
             }
         }
 
         function playerDrop() {
             if(isGameOver || isGameWon) return;
-            
             player.pos.y++;
             if (collide(board, player)) {
-                player.pos.y--;
-                merge(board, player);
-                playerReset();
-                if(!isGameOver) arenaSweep();
-            }
-            dropCounter = 0;
-        }
-
-        function playerMove(offset) {
-            player.pos.x += offset;
-            if (collide(board, player)) {
-                player.pos.x -= offset;
+                player.pos.y--; merge(board, player); playerReset(); arenaSweep();
             }
         }
 
-        function playerRotate() {
-            const pos = player.pos.x;
-            let offset = 1;
-            rotate(player.matrix);
-            
-            while (collide(board, player)) {
-                player.pos.x += offset;
-                offset = -(offset + (offset > 0 ? 1 : -1));
-                if (offset > player.matrix[0].length) {
-                    rotate(player.matrix, -1);
-                    player.pos.x = pos;
-                    return;
+        function drawMatrix(matrix, offset, id = 0) {
+            matrix.forEach((row, y) => row.forEach((val, x) => {
+                if (val !== 0) {
+                    const px = (x + offset.x) * BLOCK_SIZE; const py = (y + offset.y) * BLOCK_SIZE;
+                    ctx.fillStyle = '#C19A6B'; ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
+                    ctx.strokeStyle = '#8B5A2B'; ctx.strokeRect(px+1, py+1, BLOCK_SIZE-2, BLOCK_SIZE-2);
+                    ctx.fillStyle = PIECES[id || val].color; ctx.globalAlpha = 0.5; ctx.fillRect(px, py+10, BLOCK_SIZE, 10); ctx.globalAlpha = 1;
                 }
-            }
-        }
-
-        function rotate(matrix, dir = 1) {
-            for (let y = 0; y < matrix.length; ++y) {
-                for (let x = 0; x < y; ++x) {
-                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-                }
-            }
-            if (dir > 0) {
-                matrix.forEach(row => row.reverse());
-            } else {
-                matrix.reverse();
-            }
-        }
-
-        // FUNGSI MENGGAMBAR BOX KARDUS 'SERRUM ARTHANDLING'
-        function drawMatrix(matrix, offset, isPlayer = false) {
-            matrix.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    const blockId = isPlayer ? (value !== 0 ? player.id : 0) : value;
-                    
-                    if (blockId !== 0) {
-                        const px = (x + offset.x) * BLOCK_SIZE;
-                        const py = (y + offset.y) * BLOCK_SIZE;
-                        const pieceData = PIECES[blockId];
-
-                        // 1. Warna Dasar Kardus (Cokelat)
-                        ctx.fillStyle = '#C19A6B';
-                        ctx.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
-                        
-                        // 2. Border Pinggiran Kardus (Cokelat Tua)
-                        ctx.lineWidth = 2;
-                        ctx.strokeStyle = '#8B5A2B';
-                        ctx.strokeRect(px + 1, py + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-                        
-                        // 3. Lakban Segel (Warna neon)
-                        ctx.fillStyle = pieceData.color;
-                        ctx.globalAlpha = 0.6;
-                        ctx.fillRect(px, py + 10, BLOCK_SIZE, 10);
-                        ctx.globalAlpha = 1.0;
-
-                        // 4. Stempel Teks "SERRUM" 
-                        ctx.fillStyle = '#3a2411';
-                        ctx.font = 'bold 6px Arial, sans-serif'; 
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText('SERRUM', px + BLOCK_SIZE / 2, py + 6, BLOCK_SIZE - 4);
-
-                        // 5. Stempel Teks "ARTHANDLING" 
-                        ctx.font = 'bold 4.5px Arial, sans-serif'; 
-                        ctx.fillText('ARTHANDLING', px + BLOCK_SIZE / 2, py + 24, BLOCK_SIZE - 4);
-                    }
-                });
-            });
-        }
-
-        function drawGrid() {
-            ctx.strokeStyle = '#222'; 
-            ctx.lineWidth = 1;
-            for(let i=0; i<COLS; i++) {
-                for(let j=0; j<ROWS; j++) {
-                    ctx.strokeRect(i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-                }
-            }
+            }));
         }
 
         function draw() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            drawGrid();
-            drawMatrix(board, {x: 0, y: 0});
-            
-            if(!isGameOver && !isGameWon) {
-                drawMatrix(player.matrix, player.pos, true);
-            }
-        }
-
-        function showGameOverScreen() {
-            overlay.classList.remove('hidden');
-            overlay.innerHTML = `
-                <h2>GAME OVER</h2>
-                <p>KLIK RESTART UNTUK<br>MENCOBA LAGI</p>
-            `;
-            startBtn.innerText = "RESTART";
-        }
-
-        function showWinScreen() {
-            overlay.classList.remove('hidden');
-            overlay.innerHTML = `
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s" alt="Icon Tamat" class="overlay-icon">
-                <h2>SELAMAT!</h2>
-                <p>KAMU ADALAH<br><strong>ARTHANDLER SEJATI</strong></p>
-            `;
-            startBtn.innerText = "MAIN LAGI";
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            board.forEach((row, y) => row.forEach((val, x) => { if(val) drawMatrix([[val]], {x, y}, val); }));
+            if(!isGameOver && !isGameWon) drawMatrix(player.matrix, player.pos, player.id);
         }
 
         function update(time = 0) {
-            if (isGameOver || isGameWon) return;
-
-            const deltaTime = time - lastTime;
-            lastTime = time;
-
-            dropCounter += deltaTime;
-            if (dropCounter > dropInterval) {
-                playerDrop();
-            }
-
-            draw();
-            animationId = requestAnimationFrame(update);
+            if (time - lastTime > dropInterval) { playerDrop(); lastTime = time; }
+            draw(); if(!isGameOver && !isGameWon) requestAnimationFrame(update);
         }
 
-        // --- KONTROL KEYBOARD (DESKTOP) ---
-        document.addEventListener('keydown', event => {
-            if (isGameOver || isGameWon) return;
-
-            if (event.keyCode === 37) {
-                playerMove(-1);
-            } else if (event.keyCode === 39) {
-                playerMove(1);
-            } else if (event.keyCode === 40) {
-                playerDrop();
-            } else if (event.keyCode === 38) {
-                playerRotate();
-            }
-            
-            if([37, 38, 39, 40].includes(event.keyCode)){
-                event.preventDefault();
-            }
-        });
-
-        // --- KONTROL VIRTUAL (MOBILE SMARTPHONE) ---
-        // Menggunakan touchstart / mousedown untuk menghilangkan delay sentuhan (300ms delay)
-        const setupMobileControl = (buttonId, action) => {
-            const btn = document.getElementById(buttonId);
-            const handler = (e) => {
-                e.preventDefault(); // Mencegah double tap zoom dan event turunan default
-                if (isGameOver || isGameWon) return;
-                action();
-                draw(); // Paksa render agar visual segera merespon sentuhan
-            };
-            btn.addEventListener('touchstart', handler, { passive: false });
-            btn.addEventListener('mousedown', handler, { passive: false });
-        };
-
-        setupMobileControl('btnLeft', () => playerMove(-1));
-        setupMobileControl('btnRight', () => playerMove(1));
-        setupMobileControl('btnDrop', playerDrop);
-        setupMobileControl('btnRotate', playerRotate);
-        // ------------------------------------------
+        document.getElementById('btnLeft').addEventListener('pointerdown', (e) => { e.preventDefault(); if(!isGameOver) { player.pos.x--; if(collide(board, player)) player.pos.x++; draw(); }});
+        document.getElementById('btnRight').addEventListener('pointerdown', (e) => { e.preventDefault(); if(!isGameOver) { player.pos.x++; if(collide(board, player)) player.pos.x--; draw(); }});
+        document.getElementById('btnDrop').addEventListener('pointerdown', (e) => { e.preventDefault(); playerDrop(); draw(); });
+        document.getElementById('btnRotate').addEventListener('pointerdown', (e) => { e.preventDefault(); if(!isGameOver) { let p = player.matrix[0].map((_, i) => player.matrix.map(row => row[i]).reverse()); player.matrix = p; draw(); }});
 
         startBtn.addEventListener('click', () => {
-            board = createMatrix(COLS, ROWS);
-            score = 0;
-            level = 1;
-            linesCleared = 0;
-            isGameOver = false;
-            isGameWon = false;
-            dropInterval = 1000;
-            
-            scoreElement.innerText = score;
-            levelElement.innerText = level;
-            startBtn.innerText = "RESTART";
-            overlay.classList.add('hidden');
-            
-            playerReset();
-            lastTime = performance.now();
-            cancelAnimationFrame(animationId);
-            update();
+            board = createMatrix(COLS, ROWS); score = 0; level = 1; linesCleared = 0; isGameOver = false; isGameWon = false;
+            overlay.classList.add('hidden'); playerReset(); update();
         });
 
-        // Gambar grid kosong pertama kali
-        draw();
-        
+        function showGameOverScreen() { overlay.classList.remove('hidden'); overlay.innerHTML = "<h2>GAME OVER</h2>"; }
+        function showWinScreen() { overlay.classList.remove('hidden'); overlay.innerHTML = "<img src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHjVP89EmhemqPCMSNOFCv6wpq9jzs6DWo4g&s' class='overlay-icon'><h2>SELAMAT!</h2><p>ARTHANDLER SEJATI</p>"; }
     </script>
 </body>
 </html>
